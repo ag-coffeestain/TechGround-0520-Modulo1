@@ -28,5 +28,4 @@ public class AccountTests extends BaseClass {
         else
             Assert.assertTrue(loginPage().isErrorMessageVisibleWithText(EXPECTED_MESSAGE_ON_FAILURE));
     }
-
 }

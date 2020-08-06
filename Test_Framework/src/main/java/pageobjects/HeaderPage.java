@@ -1,5 +1,6 @@
 package pageobjects;
 
+import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -8,6 +9,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class HeaderPage extends BasePage{
+
+    static Logger logger = Logger.getLogger(HeaderPage.class);
+
 
 //   elementos
     private By myAccountLinkLocator = By.xpath("//span[text()='My Account']");
@@ -48,6 +52,8 @@ public class HeaderPage extends BasePage{
     }
 
     public void search(String searchCriteria){
+
+        logger.info(String.format("Searching for %s.", searchCriteria ));
 
         WebElement searchBar = driver.findElement(searchField);
 

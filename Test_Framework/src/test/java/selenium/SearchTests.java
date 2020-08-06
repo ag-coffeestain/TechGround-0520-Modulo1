@@ -1,6 +1,7 @@
 package selenium;
 
 import dataproviders.SearchProvider;
+import org.apache.log4j.Logger;
 import org.testng.Assert;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
@@ -8,9 +9,14 @@ import pojo.SearchData;
 
 public class SearchTests extends BaseClass {
 
-    @Test(dataProvider = "getSearchDataFromJson", dataProviderClass = SearchProvider.class)
-    @Parameters({"searchCriteria","expectedResults"})
+    static Logger logger = Logger.getLogger(SearchTests.class);
+
+    @Test(description = "This test searches on the website",
+            dataProvider = "getSearchDataFromJson",
+            dataProviderClass = SearchProvider.class)
     public void SearchTest(SearchData testSearchData){
+
+        logger.info("SEARCH TEST");
 
         headerPage().search(testSearchData.getSearchCriteria());
 

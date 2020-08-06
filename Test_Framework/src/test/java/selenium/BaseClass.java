@@ -2,6 +2,8 @@ package selenium;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.Attachment;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -9,42 +11,75 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import org.testng.ITestContext;
+import org.testng.ITestResult;
 import org.testng.annotations.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 public class BaseClass extends PageObjectHandler{
 
+    public static Logger logger =  Logger.getLogger(BaseClass.class);
+
     @BeforeTest
     public void setupTest(){
-        System.out.println("* Before Test Setup");
+        logger.debug("Start of test execution");
     }
 
     @Parameters({"browser"})
     @BeforeMethod(alwaysRun = true)
-    public void setupMethod(@Optional("chrome") String browser) throws MalformedURLException {
+    public void setupMethod(@Optional("chrome") String browser, ITestContext context, ITestResult result) throws MalformedURLException {
+
+        logger.info(String.format("Test has started: %s - %s",
+                result.getMethod().getMethodName(),
+                result.getMethod().getDescription()));
+
         setInitialConfiguration(browser);
     }
 
     @AfterMethod(alwaysRun = true)
-    public void tearDownMethod(){
+    public void tearDownMethod(ITestResult result){
+
+        if (!result.isSuccess()){
+            logger.error(String.format("Test Failed. Reason: %s" ,result.getThrowable().getMessage()));
+            logger.error(result.getThrowable().getStackTrace().toString());
+        }
+
+//        StringWriter sw = new StringWriter();
+//        PrintWriter pw = new PrintWriter(sw);
+//        getException().printStackTrace(pw);
+//
+//        toReturn += String.format("\nFailure Reason: %s ...", getException().toString());
+//        toReturn += String.format("\nStack Trace: %s ...", sw.toString());
+
+        logger.info(String.format("Finishing test. Collecting data: %s",
+                result.getMethod().getMethodName()));
+
         pagesCleanUp();
 
-        System.out.println("** After Method Setup");
-
         TakeScreenshot(driver);
+
+        try {
+            UploadLogs();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         driver.close();
 
         try {
             driver.quit();
         }
         catch (WebDriverException ex){
-            System.out.println("Session already closed!");
+            logger.warn("Driver was attempted to closed but it was already closed");
         }
+
+        logger.info("Test has completed");
     }
 
     private void setInitialConfiguration(String browser) throws MalformedURLException {
@@ -53,8 +88,6 @@ public class BaseClass extends PageObjectHandler{
 //        cap.setBrowserName("chrome");
 //        String Node = "http://localhost:4444/wd/hub";
 //        driver = new RemoteWebDriver(new URL(Node), cap);
-
-        System.out.println("** Before Method Setup");
 
         if (browser.equals("firefox")){
             WebDriverManager.firefoxdriver().setup();
@@ -75,9 +108,15 @@ public class BaseClass extends PageObjectHandler{
     }
 
     @Attachment(value = "screenshot", type = "image/png")
-    public byte[] TakeScreenshot(WebDriver driver){
+    public byte[] TakeScreenshot(WebDriver driver) {
         return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+
     }
+    @Attachment(value = "executionlogs")
+    public String UploadLogs() throws IOException {
+        return FileUtils.readFileToString(new File("test-execution.log"));
+    }
+
 }
 
 

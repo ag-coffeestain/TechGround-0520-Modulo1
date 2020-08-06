@@ -20,12 +20,9 @@ public class DataUtils {
     }
 
     public static String getAmountFromCurrency(String text){
-        if (text.contains("€"))
-            return text.replace("€","");
-        else
-            if (text.contains("$"))
-                return text.replace("$","");
-        return text;
+          return text.replace("€","")
+                  .replace("$", "")
+                  .replace("L","");
     }
 
     @Test
